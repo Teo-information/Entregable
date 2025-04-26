@@ -3,20 +3,45 @@ const path = require("path");
 
 class VendedorController {
   static async listar(req, res) {
-    const { busqueda, tipo } = req.query;
     try {
-      let vendedores;
+      // Parámetros de paginación
+      const pagina = parseInt(req.query.pagina) || 1;
+      const porPagina = 10; // Vendedores por página
+      const offset = (pagina - 1) * porPagina;
+      const { busqueda, tipo } = req.query;
+  
+      let vendedores = [];
+      let totalVendedores = 0;
+  
+      // Obtener vendedores según filtros y paginación
       if (busqueda && tipo) {
-        vendedores = await VendedorModel.buscarPor(busqueda, tipo);
+        vendedores = await VendedorModel.buscarPorPaginado(busqueda, tipo, porPagina, offset);
+        totalVendedores = await VendedorModel.contarFiltrados(busqueda, tipo);
       } else {
-        vendedores = await VendedorModel.listarTodos();
+        vendedores = await VendedorModel.listarPaginado(porPagina, offset);
+        totalVendedores = await VendedorModel.contarTodos();
       }
+  
+      // Calcular el total de páginas
+      const totalPaginas = Math.ceil(totalVendedores / porPagina);
       const distritos = await VendedorModel.listarDistritos();
+  
+      // Renderizar vista con información de paginación
       res.render("index", {
         vendedores,
         distritos,
         busqueda: busqueda || "",
         tipo: tipo || "todos",
+        paginacion: {
+          pagina,
+          porPagina,
+          totalVendedores,
+          totalPaginas,
+          // Agregar query string actual para mantener filtros en los enlaces de paginación
+          queryString: req.query.busqueda ? 
+            `busqueda=${encodeURIComponent(req.query.busqueda)}&tipo=${req.query.tipo || 'todos'}` : 
+            ''
+        }
       });
     } catch (error) {
       console.error("Error al listar vendedores:", error);
@@ -24,8 +49,15 @@ class VendedorController {
         vendedores: [],
         distritos: [],
         error: `Error al recuperar vendedores: ${error.message}`,
-        busqueda: busqueda || "",
-        tipo: tipo || "todos",
+        busqueda: req.query.busqueda || "",
+        tipo: req.query.tipo || "todos",
+        paginacion: {
+          pagina: 1,
+          porPagina: 10,
+          totalVendedores: 0,
+          totalPaginas: 0,
+          queryString: ''
+        }
       });
     }
   }
@@ -319,7 +351,7 @@ class VendedorController {
         );
     }
   }
-  static async listar(req, res) {
+  static async listarBusqueda(req, res) {
     const { busqueda, tipo } = req.query;
     try {
       let vendedores = [];

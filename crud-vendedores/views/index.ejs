@@ -125,6 +125,26 @@
         .export-buttons {
             margin-top: 1rem;
         }
+        .pagination {
+            margin-bottom: 0;
+        }
+
+        .page-item.active .page-link {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .page-link {
+            color: var(--primary-color);
+        }
+
+        .page-link:hover {
+            color: var(--secondary-color);
+        }
+
+        .page-item.disabled .page-link {
+            color: #6c757d;
+}
     </style>
 </head>
 <body>
@@ -257,11 +277,53 @@
                     </div>
                 <% } %>
             </div>
-            <% if (locals.vendedores && vendedores.length > 0) { %>
-                <div class="card-footer text-muted">
-                    Mostrando <%= vendedores.length %> vendedores
+            <% if (locals.vendedores && vendedores.length > 0 && locals.paginacion) { %>
+                <div class="card-footer">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      Mostrando <%= vendedores.length %> de <%= paginacion.totalVendedores %> vendedores
+                    </div>
+                    <nav aria-label="Paginación de vendedores">
+                      <ul class="pagination mb-0">
+                        <!-- Botón Anterior -->
+                        <li class="page-item <%= paginacion.pagina <= 1 ? 'disabled' : '' %>">
+                          <a class="page-link" href="/vendedores?<%= paginacion.queryString %>&pagina=<%= paginacion.pagina - 1 %>" aria-label="Anterior">
+                            <span aria-hidden="true">&laquo;</span>
+                          </a>
+                        </li>
+                        
+                        <!-- Páginas -->
+                        <% 
+                          let startPage = Math.max(1, paginacion.pagina - 2);
+                          let endPage = Math.min(paginacion.totalPaginas, paginacion.pagina + 2);
+                          
+                          // Asegurar que siempre se muestren 5 páginas si hay suficientes
+                          if (endPage - startPage < 4 && paginacion.totalPaginas > 4) {
+                            if (paginacion.pagina <= 3) {
+                              endPage = Math.min(5, paginacion.totalPaginas);
+                            } else {
+                              startPage = Math.max(1, paginacion.totalPaginas - 4);
+                            }
+                          }
+                        %>
+                        
+                        <% for(let i = startPage; i <= endPage; i++) { %>
+                          <li class="page-item <%= paginacion.pagina === i ? 'active' : '' %>">
+                            <a class="page-link" href="/vendedores?<%= paginacion.queryString %>&pagina=<%= i %>"><%= i %></a>
+                          </li>
+                        <% } %>
+                        
+                        <!-- Botón Siguiente -->
+                        <li class="page-item <%= paginacion.pagina >= paginacion.totalPaginas ? 'disabled' : '' %>">
+                          <a class="page-link" href="/vendedores?<%= paginacion.queryString %>&pagina=<%= paginacion.pagina + 1 %>" aria-label="Siguiente">
+                            <span aria-hidden="true">&raquo;</span>
+                          </a>
+                        </li>
+                      </ul>
+                    </nav>
+                  </div>
                 </div>
-            <% } %>
+              <% } %>
         </div>
     </div>
 
