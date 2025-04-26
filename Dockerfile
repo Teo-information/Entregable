@@ -17,4 +17,4 @@ COPY . .
 EXPOSE 3000
 
 # Comando para iniciar la app
-CMD ["node", "app.js"]
+CMD ["node", "railway-app/crud-vendedores/app.js"]
