@@ -244,3 +244,171 @@ BEGIN
     UPDATE Vendedor SET id_distrito = primer_distrito WHERE id_distrito IS NULL;
 END //
 DELIMITER ;
+
+-- Procedimiento almacenado para listar vendedores con paginación
+DELIMITER //
+CREATE PROCEDURE sp_lisven_paginado(
+    IN p_limite INT,
+    IN p_offset INT
+)
+BEGIN
+    SELECT 
+        v.*,
+        COALESCE(d.nombre, 'Sin distrito') as distrito
+    FROM Vendedor v
+    LEFT JOIN Distrito d ON v.id_distrito = d.id_distrito
+    ORDER BY v.id_ven
+    LIMIT p_limite OFFSET p_offset;
+    
+    -- Segunda consulta para obtener el total de registros
+    SELECT COUNT(*) as total FROM Vendedor;
+END //
+DELIMITER ;
+
+-- Procedimiento almacenado para buscar por ID con paginación
+DELIMITER //
+CREATE PROCEDURE sp_busven_paginado(
+    IN p_id_ven INT,
+    IN p_limite INT,
+    IN p_offset INT
+)
+BEGIN
+    SELECT 
+        v.*,
+        COALESCE(d.nombre, 'Sin distrito') as distrito
+    FROM Vendedor v
+    LEFT JOIN Distrito d ON v.id_distrito = d.id_distrito
+    WHERE v.id_ven = p_id_ven
+    LIMIT p_limite OFFSET p_offset;
+    
+    -- Segunda consulta para obtener el total de registros filtrados
+    SELECT COUNT(*) as total FROM Vendedor WHERE id_ven = p_id_ven;
+END //
+DELIMITER ;
+
+-- Procedimiento almacenado para buscar por texto con paginación
+DELIMITER //
+CREATE PROCEDURE sp_searchven_paginado(
+    IN p_search VARCHAR(50),
+    IN p_limite INT,
+    IN p_offset INT
+)
+BEGIN
+    IF p_search IS NULL THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'El término de búsqueda no puede estar vacío';
+    END IF;
+    
+    SELECT 
+        v.*,
+        COALESCE(d.nombre, 'Sin distrito') as distrito
+    FROM Vendedor v
+    LEFT JOIN Distrito d ON v.id_distrito = d.id_distrito
+    WHERE v.nom_ven LIKE CONCAT('%', p_search, '%')
+       OR v.ape_ven LIKE CONCAT('%', p_search, '%')
+       OR d.nombre LIKE CONCAT('%', p_search, '%')
+       OR v.cel_ven LIKE CONCAT('%', p_search, '%')
+    ORDER BY v.id_ven
+    LIMIT p_limite OFFSET p_offset;
+    
+    -- Segunda consulta para obtener el total de registros filtrados
+    SELECT COUNT(*) as total 
+    FROM Vendedor v
+    LEFT JOIN Distrito d ON v.id_distrito = d.id_distrito
+    WHERE v.nom_ven LIKE CONCAT('%', p_search, '%')
+       OR v.ape_ven LIKE CONCAT('%', p_search, '%')
+       OR d.nombre LIKE CONCAT('%', p_search, '%')
+       OR v.cel_ven LIKE CONCAT('%', p_search, '%');
+END //
+DELIMITER ;
+
+-- Procedimiento almacenado simplificado para contar todos los vendedores
+DELIMITER //
+CREATE PROCEDURE sp_contar_vendedores()
+BEGIN
+    SELECT COUNT(*) as total FROM Vendedor;
+END //
+DELIMITER ;
+
+-- Procedimiento almacenado para buscar por tipo específico con paginación
+DELIMITER //
+CREATE PROCEDURE sp_buscar_por_tipo_paginado(
+    IN p_search VARCHAR(50),
+    IN p_tipo VARCHAR(20),
+    IN p_limite INT,
+    IN p_offset INT
+)
+BEGIN
+    IF p_search IS NULL THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'El término de búsqueda no puede estar vacío';
+    END IF;
+    
+    CASE p_tipo
+        WHEN 'nombre' THEN
+            SELECT 
+                v.*,
+                COALESCE(d.nombre, 'Sin distrito') as distrito
+            FROM Vendedor v
+            LEFT JOIN Distrito d ON v.id_distrito = d.id_distrito
+            WHERE v.nom_ven LIKE CONCAT('%', p_search, '%')
+            ORDER BY v.id_ven
+            LIMIT p_limite OFFSET p_offset;
+            
+            -- Total de registros filtrados
+            SELECT COUNT(*) as total 
+            FROM Vendedor 
+            WHERE nom_ven LIKE CONCAT('%', p_search, '%');
+            
+        WHEN 'apellido' THEN
+            SELECT 
+                v.*,
+                COALESCE(d.nombre, 'Sin distrito') as distrito
+            FROM Vendedor v
+            LEFT JOIN Distrito d ON v.id_distrito = d.id_distrito
+            WHERE v.ape_ven LIKE CONCAT('%', p_search, '%')
+            ORDER BY v.id_ven
+            LIMIT p_limite OFFSET p_offset;
+            
+            -- Total de registros filtrados
+            SELECT COUNT(*) as total 
+            FROM Vendedor 
+            WHERE ape_ven LIKE CONCAT('%', p_search, '%');
+            
+        WHEN 'distrito' THEN
+            SELECT 
+                v.*,
+                COALESCE(d.nombre, 'Sin distrito') as distrito
+            FROM Vendedor v
+            LEFT JOIN Distrito d ON v.id_distrito = d.id_distrito
+            WHERE d.nombre LIKE CONCAT('%', p_search, '%')
+            ORDER BY v.id_ven
+            LIMIT p_limite OFFSET p_offset;
+            
+            -- Total de registros filtrados
+            SELECT COUNT(*) as total 
+            FROM Vendedor v
+            LEFT JOIN Distrito d ON v.id_distrito = d.id_distrito
+            WHERE d.nombre LIKE CONCAT('%', p_search, '%');
+            
+        WHEN 'celular' THEN
+            SELECT 
+                v.*,
+                COALESCE(d.nombre, 'Sin distrito') as distrito
+            FROM Vendedor v
+            LEFT JOIN Distrito d ON v.id_distrito = d.id_distrito
+            WHERE v.cel_ven LIKE CONCAT('%', p_search, '%')
+            ORDER BY v.id_ven
+            LIMIT p_limite OFFSET p_offset;
+            
+            -- Total de registros filtrados
+            SELECT COUNT(*) as total 
+            FROM Vendedor 
+            WHERE cel_ven LIKE CONCAT('%', p_search, '%');
+            
+        ELSE
+            -- Por defecto buscar en todos los campos
+            CALL sp_searchven_paginado(p_search, p_limite, p_offset);
+    END CASE;
+END //
+DELIMITER ;
