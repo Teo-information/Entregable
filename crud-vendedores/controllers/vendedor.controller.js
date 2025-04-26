@@ -351,39 +351,7 @@ class VendedorController {
         );
     }
   }
-  static async listarBusqueda(req, res) {
-    const { busqueda, tipo } = req.query;
-    try {
-      let vendedores = [];
-      if (busqueda && tipo) {
-        vendedores = await VendedorModel.buscarPor(busqueda, tipo);
-      } else {
-        vendedores = await VendedorModel.listarTodos();
-      }
-      const distritos = await VendedorModel.listarDistritos();
-
-      // Renderizamos la vista sin mostrar mensaje de error incluso cuando no hay vendedores
-      res.render("index", {
-        vendedores,
-        distritos,
-        busqueda: busqueda || "",
-        tipo: tipo || "todos",
-        // No pasamos un mensaje de error
-      });
-    } catch (error) {
-      console.error("Error al listar vendedores:", error);
-
-      // Incluso con error, evitamos mostrar el mensaje en la interfaz
-      const distritos = await VendedorModel.listarDistritos().catch(() => []);
-      res.status(500).render("index", {
-        vendedores: [],
-        distritos,
-        busqueda: busqueda || "",
-        tipo: tipo || "todos",
-        // No pasamos mensaje de error visible
-      });
-    }
-  }
+  
 }
 
 module.exports = VendedorController;
