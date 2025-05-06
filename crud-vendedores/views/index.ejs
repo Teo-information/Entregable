@@ -147,11 +147,28 @@
         .page-item.disabled .page-link {
             color: #6c757d;
 }
+.btn-regresar {
+  background-color: #6b4c2a;
+  color: white;
+  padding: 10px 20px;
+  text-decoration: none;
+  border-radius: 5px;
+  transition: all 0.3s ease;
+  font-size: 1rem; /* Bootstrap equivale a fs-5 */
+  font-weight: normal;
+}
+
+.btn-regresar:hover {
+  color: black;
+  font-size: 1.25rem; /* Bootstrap equivale a fs-4 */
+  font-weight: bold; /* Bootstrap equivale a fw-bold */
+}
     </style>
 </head>
 <body>
     <!-- Barra de navegación -->
     <nav class="navbar navbar-expand-lg navbar-dark">
+        <a href="/" class="btn-regresar"> ← Regresar</a>
         <div class="container">
             <a class="navbar-brand" href="/vendedores">
                 <i class="bi bi-people-fill me-2"></i>Sistema de venta de cafes
@@ -174,7 +191,7 @@
                 <span><i class="bi bi-search me-2"></i>Búsqueda de Pedidos</span>
                 <div>
                     <a href="/vendedores/nuevo" class="btn btn-success btn-sm">
-                        <i class="bi bi-plus-lg me-1"></i>Nuevo Pedidos
+                        <i class="bi bi-plus-lg me-1"></i>Nuevo Pedido
                     </a>
                 </div>
             </div>
@@ -329,9 +346,9 @@
         </div>
     </div>
 
-    <footer class="bg-dark text-white text-center py-3 mt-5">
+    <footer class="bg-dark text-white text-center py-3 mt-5" style="position: fixed; bottom: 0; width: 100%;">
         <p class="mb-0">Sistema de Gestión de Pedidos&copy; <%= new Date().getFullYear() %></p>
-    </footer>
+    </footer>    
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>

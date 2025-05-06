@@ -25,7 +25,7 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-// Ruta /delivery: Muestra el sistema de vendedores
+// Ruta /delivery: Muestra el sistema de delivery
 app.get("/delivery", (req, res) => {
   res.redirect("/vendedores"); // Redirige al sistema de vendedores
 });
