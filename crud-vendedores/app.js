@@ -6,10 +6,15 @@ const app = express();
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
+
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "public"))); // Sirve archivos estáticos
+
+
+const contactoRoutes = require('./routes/contacto.routes');
+app.use('/api', contactoRoutes);
 
 // Importar rutas de vendedores
 const vendedoresRoutes = require("./routes/vendedores");

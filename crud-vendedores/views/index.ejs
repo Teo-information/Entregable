@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Vendedores</title>
+    <title>sistema de venta de cafes</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         :root {
-            --primary-color: #2563eb;
-            --secondary-color: #1e40af;
-            --accent-color: #3b82f6;
-            --light-color: #f3f4f6;
-            --dark-color: #1f2937;
+            --primary-color: #6F4E37;
+            --secondary-color: #6F4E37;
+            --accent-color: #A67C52;
+            --light-color: #D2B48C;
+            --dark-color: #F5F0E6;
         }
         
         body {
@@ -74,28 +74,28 @@
         }
         
         .btn-success {
-            background-color: #10b981;
-            border-color: #10b981;
+            background-color: #A67C52;
+            border-color: #A67C52;
         }
         
         .btn-success:hover {
-            background-color: #059669;
-            border-color: #059669;
+            background-color: #A67C52;
+            border-color: #A67C52;
         }
         
         .btn-danger {
-            background-color: #ef4444;
-            border-color: #ef4444;
+            background-color: #A67C52;
+            border-color: #A67C52;
         }
         
         .btn-danger:hover {
-            background-color: #dc2626;
-            border-color: #dc2626;
+            background-color: #A67C52;
+            border-color: #A67C52;
         }
         
         .form-control:focus, .form-select:focus {
             border-color: var(--accent-color);
-            box-shadow: 0 0 0 0.25rem rgba(59, 130, 246, 0.25);
+            box-shadow: 0 0 0 0.25rem rgba(73, 92, 123, 0.25);
         }
         
         .page-container {
@@ -152,7 +152,7 @@
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
             <a class="navbar-brand" href="/vendedores">
-                <i class="bi bi-people-fill me-2"></i>Sistema de Vendedores
+                <i class="bi bi-people-fill me-2"></i>Sistema de venta de cafes
             </a>
         </div>
     </nav>
@@ -161,7 +161,7 @@
         <div class="row mb-4">
             <div class="col">
                 <h2 class="mb-4 text-dark">
-                    <i class="bi bi-list-ul me-2"></i>Gestión de Vendedores
+                    <i class="bi bi-list-ul me-2"></i>Gestión de Pedidos
                 </h2>
             </div>
         </div>
@@ -169,10 +169,10 @@
         <!-- Tarjeta de búsqueda -->
         <div class="card search-card">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-search me-2"></i>Búsqueda de Vendedores</span>
+                <span><i class="bi bi-search me-2"></i>Búsqueda de Pedidos</span>
                 <div>
                     <a href="/vendedores/nuevo" class="btn btn-success btn-sm">
-                        <i class="bi bi-plus-lg me-1"></i>Nuevo Vendedor
+                        <i class="bi bi-plus-lg me-1"></i>Nuevo Pedidos
                     </a>
                 </div>
             </div>
@@ -183,7 +183,7 @@
                             <div class="input-group">
                                 <span class="input-group-text"><i class="bi bi-search"></i></span>
                                 <input type="text" class="form-control" name="busqueda" 
-                                       placeholder="Buscar vendedor..." 
+                                       placeholder="Buscar pedidos..." 
                                        value="<%= locals.busqueda || '' %>">
                             </div>
                         </div>
@@ -216,7 +216,7 @@
         <!-- Tarjeta de resultados -->
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-table me-2"></i>Listado de Vendedores</span>
+                <span><i class="bi bi-table me-2"></i>Listado de Pedidos</span>
                 <div>
                     <button onclick="exportarPDF()" class="btn btn-danger btn-sm">
                         <i class="bi bi-file-earmark-pdf me-1"></i>Exportar PDF
@@ -272,8 +272,8 @@
                 <% } else { %>
                     <div class="empty-state">
                         <i class="bi bi-inbox"></i>
-                        <h5>No se encontraron vendedores</h5>
-                        <p>Intenta con otra búsqueda o agrega un nuevo vendedor.</p>
+                        <h5>No se encontro su Pedido</h5>
+                        <p>Intenta con otra búsqueda o agrega un nuevo Pedido.</p>
                     </div>
                 <% } %>
             </div>
@@ -328,7 +328,7 @@
     </div>
 
     <footer class="bg-dark text-white text-center py-3 mt-5">
-        <p class="mb-0">Sistema de Gestión de Vendedores &copy; <%= new Date().getFullYear() %></p>
+        <p class="mb-0">Sistema de Gestión de Pedidos&copy; <%= new Date().getFullYear() %></p>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -339,7 +339,7 @@
             text: 'Esta acción eliminará permanentemente al vendedor',
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#ef4444',
+            confirmButtonColor: '#A67C52',
             cancelButtonColor: '#6b7280',
             confirmButtonText: '<i class="bi bi-trash me-1"></i>Sí, eliminar',
             cancelButtonText: 'Cancelar',
@@ -366,7 +366,7 @@
                         title: '¡Eliminado!',
                         text: data.message,
                         icon: 'success',
-                        confirmButtonColor: '#2563eb'
+                        confirmButtonColor: '#A67C52'
                     });
                     window.location.reload();
                 } else {
@@ -377,7 +377,7 @@
                     title: 'Error',
                     text: error.message,
                     icon: 'error',
-                    confirmButtonColor: '#2563eb'
+                    confirmButtonColor: '#A67C52'
                 });
             }
         }
