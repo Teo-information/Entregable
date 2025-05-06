@@ -29,10 +29,16 @@ document.addEventListener("DOMContentLoaded", function () {
     const correo = document.getElementById("email").value.trim();
     const telefono = document.getElementById("no_hp").value.trim();
     
-    // Validación básica
+    // Validación de campos vacíos
     if (!nombre || !correo || !telefono) {
-      mostrarMensajeFlotante("Por favor complete todos los campos", "error");
-      return;
+      mostrarMensajeFlotante("Por favor, complete todos los campos obligatorios", "error");
+      
+      // Marcar visualmente los campos vacíos
+      if (!nombre) marcarCampoInvalido("nama");
+      if (!correo) marcarCampoInvalido("email");
+      if (!telefono) marcarCampoInvalido("no_hp");
+      
+      return; // Detener el envío del formulario
     }
     
     // Obtener el valor de la valoración (rating) seleccionada
@@ -59,31 +65,54 @@ document.addEventListener("DOMContentLoaded", function () {
       
       const data = await res.json();
       
-      // Mostramos el mensaje flotante
+      // Mostramos el mensaje flotante de éxito
       mostrarMensajeFlotante(data.mensaje || "Contacto guardado con éxito", "success");
       
-      // Limpiamos FORZOSAMENTE los campos del formulario
-      document.getElementById("nama").value = "";
-      document.getElementById("email").value = "";
-      document.getElementById("no_hp").value = "";
+      // Guardamos el mensaje de éxito en sessionStorage para recuperarlo después del refresh
+      sessionStorage.setItem('mensajeExito', data.mensaje || "Contacto guardado con éxito");
       
-      // Reestablecemos la valoración a 0 estrellas
-      const noRate = document.getElementById("no-rate");
-      if (noRate) {
-        noRate.checked = true;
-      }
-      
-      // Además del reset del formulario
+      // Esperamos un momento para que el usuario pueda ver el mensaje antes del refresh
       setTimeout(() => {
-        form.reset();
-      }, 100);
+        // Refrescamos la página para limpiar completamente el formulario
+        window.location.reload();
+      }, 1500);
       
     } catch (err) {
       console.error("Error al enviar:", err);
       mostrarMensajeFlotante("Error al guardar el contacto: " + err.message, "error");
     }
   });
+  
+  // Eliminar el estado de inválido cuando el usuario comienza a escribir
+  inputs.forEach(input => {
+    input.addEventListener('input', function() {
+      this.classList.remove('campo-invalido');
+    });
+  });
+  
+  // Verificar si hay un mensaje de éxito guardado de un envío previo
+  window.addEventListener('load', function() {
+    const mensajeGuardado = sessionStorage.getItem('mensajeExito');
+    if (mensajeGuardado) {
+      // Mostrar el mensaje guardado
+      mostrarMensajeFlotante(mensajeGuardado, "success");
+      // Eliminar el mensaje guardado para que no aparezca en futuros recargas
+      sessionStorage.removeItem('mensajeExito');
+    }
+  });
 });
+
+/**
+ * Función para marcar visualmente un campo como inválido
+ * @param {string} id - El ID del campo a marcar
+ */
+function marcarCampoInvalido(id) {
+  const campo = document.getElementById(id);
+  if (campo) {
+    campo.classList.add('campo-invalido');
+    campo.focus();
+  }
+}
 
 /**
  * Función para mostrar un mensaje flotante
@@ -190,6 +219,10 @@ style.textContent = `
   .mensaje-flotante {
     opacity: 1 !important;
     display: block !important;
+  }
+  .campo-invalido {
+    border: 2px solid #F44336 !important;
+    background-color: rgba(244, 67, 54, 0.05) !important;
   }
 `;
 document.head.appendChild(style);

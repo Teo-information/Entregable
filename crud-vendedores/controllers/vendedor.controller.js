@@ -25,11 +25,13 @@ class VendedorController {
       // Calcular el total de páginas
       const totalPaginas = Math.ceil(totalVendedores / porPagina);
       const distritos = await VendedorModel.listarDistritos();
+      const cafes = await VendedorModel.listarCafes();
   
       // Renderizar vista con información de paginación
       res.render("index", {
         vendedores,
         distritos,
+        cafes,
         busqueda: busqueda || "",
         tipo: tipo || "todos",
         paginacion: {
@@ -48,6 +50,7 @@ class VendedorController {
       res.status(500).render("index", {
         vendedores: [],
         distritos: [],
+        cafes: [],
         error: `Error al recuperar vendedores: ${error.message}`,
         busqueda: req.query.busqueda || "",
         tipo: req.query.tipo || "todos",
@@ -65,17 +68,18 @@ class VendedorController {
   static async mostrarFormularioNuevo(req, res) {
     try {
       const distritos = await VendedorModel.listarDistritos();
-      res.render("nuevo", { distritos });
+      const cafes = await VendedorModel.listarCafes(); // Obtienes ambos aquí
+      res.render("nuevo", { distritos, cafes }); // Renderizas una sola vez, pasando ambos arrays
     } catch (error) {
-      console.error("Error al cargar distritos:", error);
-      res.status(500).send("Error al cargar el formulario");
+      console.error("Error al cargar datos para formulario nuevo:", error); // Mensaje de error más general
+      res.status(500).send("Error al cargar el formulario de nuevo vendedor");
     }
   }
 
   static async crear(req, res) {
-    const { nom_ven, ape_ven, cel_ven, id_distrito } = req.body;
+    const { nom_ven, ape_ven, cel_ven, id_distrito, id_cafe} = req.body;
     try {
-      await VendedorModel.crear(nom_ven, ape_ven, cel_ven, id_distrito);
+      await VendedorModel.crear(nom_ven, ape_ven, cel_ven, id_distrito, id_cafe);
       res.json({ success: true, message: "Vendedor creado exitosamente" });
     } catch (error) {
       console.error("Error al crear vendedor:", error);
@@ -93,15 +97,16 @@ class VendedorController {
         return res.status(404).send("Vendedor no encontrado");
       }
       const distritos = await VendedorModel.listarDistritos();
-      res.render("editar", { vendedor: vendedor[0], distritos });
+      const cafes = await VendedorModel.listarCafes(); // Obtienes ambos aquí
+      res.render("editar", { vendedor: vendedor[0], distritos, cafes }); // Renderizas una sola vez, pasando todo
     } catch (error) {
-      console.error("Error al buscar vendedor:", error);
-      res.status(500).send("Error al recuperar vendedor");
+      console.error("Error al cargar datos para formulario editar:", error); // Mensaje de error más general
+      res.status(500).send("Error al recuperar datos del vendedor para editar");
     }
   }
 
   static async actualizar(req, res) {
-    const { nom_ven, ape_ven, cel_ven, id_distrito } = req.body;
+    const { nom_ven, ape_ven, cel_ven, id_distrito, id_cafe} = req.body;
     const id_ven = req.params.id;
     try {
       await VendedorModel.actualizar(
@@ -109,7 +114,8 @@ class VendedorController {
         nom_ven,
         ape_ven,
         cel_ven,
-        id_distrito
+        id_distrito,
+        id_cafe
       );
       res.json({ success: true, message: "Vendedor actualizado exitosamente" });
     } catch (error) {
@@ -200,13 +206,14 @@ class VendedorController {
               headerRows: 1,
               widths: ["auto", "*", "*", "auto", "*"],
               body: [
-                ["ID", "Nombre", "Apellido", "Celular", "Distrito"],
+                ["ID", "Nombre", "Apellido", "Celular", "Distrito", "Tipo Café"],
                 ...vendedores.map((v) => [
                   v.id_ven,
                   v.nom_ven,
                   v.ape_ven,
                   v.cel_ven,
-                  v.distrito
+                  v.distrito,
+                  v.tipo_cafe,
                 ]),
               ],
             },
@@ -263,7 +270,7 @@ class VendedorController {
       // json2csv se requiere aquí dentro del método
       const { Parser } = require("json2csv");
 
-      const fields = ["id_ven", "nom_ven", "ape_ven", "cel_ven", "distrito"];
+      const fields = ["id_ven", "nom_ven", "ape_ven", "cel_ven", "distrito", "tipo_cafe"];
       const opts = { fields };
       const parser = new Parser(opts);
       const csv = parser.parse(vendedores);
@@ -312,6 +319,7 @@ class VendedorController {
               <th>Apellido</th>
               <th>Celular</th>
               <th>Distrito</th>
+              <th>Tipo Café</th>
             </tr>
           </thead>
           <tbody>
@@ -326,6 +334,7 @@ class VendedorController {
             <td>${v.ape_ven}</td>
             <td>${v.cel_ven}</td>
             <td>${v.distrito}</td>
+            <td>${v.tipo_cafe}</td>
           </tr>
         `;
       });

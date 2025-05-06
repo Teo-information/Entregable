@@ -32,6 +32,11 @@ class VendedorModel {
     return rows[0];
   }
 
+  static async listarCafes() {
+    const [rows] = await db.query("CALL sp_listartiposcafe()");
+    return rows[0];
+  }
+
   static async buscarPorId(id) {
     try {
       const [rows] = await db.query("CALL sp_busven(?)", [id]);
@@ -42,23 +47,25 @@ class VendedorModel {
     }
   }
 
-  static async crear(nom_ven, ape_ven, cel_ven, id_distrito) {
+  static async crear(nom_ven, ape_ven, cel_ven, id_distrito, id_cafe) {
     const [result] = await db.query("CALL sp_ingven(?, ?, ?, ?)", [
       nom_ven,
       ape_ven,
       cel_ven,
       id_distrito,
+      id_cafe,
     ]);
     return result[0];
   }
 
-  static async actualizar(id_ven, nom_ven, ape_ven, cel_ven, id_distrito) {
+  static async actualizar(id_ven, nom_ven, ape_ven, cel_ven, id_distrito, id_cafe) {
     return await db.query("CALL sp_modven(?, ?, ?, ?, ?)", [
       id_ven,
       nom_ven,
       ape_ven,
       cel_ven,
       id_distrito,
+      id_cafe,
     ]);
   }
 
