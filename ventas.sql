@@ -254,12 +254,34 @@ BEGIN
     FROM Vendedor v
     LEFT JOIN Distrito d ON v.id_distrito = d.id_distrito
     ORDER BY v.id_ven
-    LIMIT p_limite
-    OFFSET p_offset;
+    LIMIT p_limite OFFSET p_offset;
 END //
 DELIMITER ;
-DROP PROCEDURE IF EXISTS sp_searchven_paginado;
--- Procedimiento para buscar vendedores con paginación
+
+-- Procedimiento para buscar vendedor por ID con paginación
+DELIMITER //
+CREATE PROCEDURE sp_busven_paginado(
+    IN p_id_ven INT,
+    IN p_limite INT,
+    IN p_offset INT
+)
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM Vendedor WHERE id_ven = p_id_ven) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'El vendedor especificado no existe';
+    END IF;
+    
+    SELECT 
+        v.*,
+        COALESCE(d.nombre, 'Sin distrito') as distrito
+    FROM Vendedor v
+    LEFT JOIN Distrito d ON v.id_distrito = d.id_distrito
+    WHERE v.id_ven = p_id_ven
+    LIMIT p_limite OFFSET p_offset;
+END //
+DELIMITER ;
+
+-- Procedimiento para buscar vendedor por texto con paginación
 DELIMITER //
 CREATE PROCEDURE sp_searchven_paginado(
     IN p_search VARCHAR(50),
@@ -267,6 +289,11 @@ CREATE PROCEDURE sp_searchven_paginado(
     IN p_offset INT
 )
 BEGIN
+    IF p_search IS NULL THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'El término de búsqueda no puede estar vacío';
+    END IF;
+    
     SELECT 
         v.*,
         COALESCE(d.nombre, 'Sin distrito') as distrito
@@ -277,7 +304,71 @@ BEGIN
        OR d.nombre LIKE CONCAT('%', p_search, '%')
        OR v.cel_ven LIKE CONCAT('%', p_search, '%')
     ORDER BY v.id_ven
-    LIMIT p_limite
-    OFFSET p_offset;
+    LIMIT p_limite OFFSET p_offset;
+END //
+DELIMITER ;
+
+-- Crear tabla tipo_cafe si no existe
+CREATE TABLE IF NOT EXISTS tipo_cafe (
+    id_tipo INT PRIMARY KEY AUTO_INCREMENT,
+    nombre VARCHAR(50) NOT NULL,
+    descripcion TEXT,
+    precio DECIMAL(10,2) NOT NULL
+);
+
+-- Insertar algunos tipos de café por defecto
+INSERT INTO tipo_cafe (nombre, descripcion, precio) VALUES
+('Café Americano', 'Café negro con agua caliente', 8.50),
+('Café Latte', 'Espresso con leche vaporizada', 12.00),
+('Café Moka', 'Espresso con chocolate y leche', 13.50),
+('Café Capuccino', 'Espresso con leche espumada', 11.00),
+('Café Expresso', 'Café concentrado', 7.00)
+ON DUPLICATE KEY UPDATE nombre = VALUES(nombre);
+
+-- Procedimiento para listar tipos de café
+DELIMITER //
+CREATE PROCEDURE sp_listartiposcafe()
+BEGIN
+    SELECT * FROM tipo_cafe ORDER BY nombre;
+END //
+DELIMITER ;
+
+-- Crear tabla Contactos si no existe
+CREATE TABLE IF NOT EXISTS Contactos (
+    id_contacto INT PRIMARY KEY AUTO_INCREMENT,
+    nombre VARCHAR(50) NOT NULL,
+    telefono VARCHAR(15),
+    email VARCHAR(100)
+);
+
+-- Procedimiento para insertar contacto
+DELIMITER //
+CREATE PROCEDURE sp_ingcontacto(
+    IN p_nombre VARCHAR(50),
+    IN p_telefono VARCHAR(15),
+    IN p_email VARCHAR(100)
+)
+BEGIN
+    INSERT INTO Contactos(nombre, telefono, email)
+    VALUES (p_nombre, p_telefono, p_email);
+    SELECT LAST_INSERT_ID() AS id_contacto;
+END //
+DELIMITER ;
+
+-- Procedimiento para listar contactos
+DELIMITER //
+CREATE PROCEDURE sp_listarcontactos()
+BEGIN
+    SELECT * FROM Contactos ORDER BY id_contacto;
+END //
+DELIMITER ;
+
+-- Procedimiento para eliminar contacto
+DELIMITER //
+CREATE PROCEDURE sp_delcontacto(
+    IN p_id_contacto INT
+)
+BEGIN
+    DELETE FROM Contactos WHERE id_contacto = p_id_contacto;
 END //
 DELIMITER ; 
