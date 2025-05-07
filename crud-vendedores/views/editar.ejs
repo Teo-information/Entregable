@@ -128,15 +128,15 @@
         }
     </style>
 </head>
-<body>
+<ody>
     <!-- Barra de navegación -->
-    <nav class="navbar navbar-expand-lg navbar-dark">
+    <navb class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
             <a class="navbar-brand" href="/vendedores">
                 <i class="bi bi-people-fill me-2"></i>Sistema de Pedido
             </a>
         </div>
-    </nav>
+    </navb>
 
     <div class="container page-container">
         <div class="row mb-4">
@@ -220,6 +220,21 @@
                                         <% distritos.forEach(function(distrito) { %>
                                             <option value="<%= distrito.id_distrito %>" <%= vendedor.id_distrito == distrito.id_distrito ? 'selected' : '' %>>
                                                 <%= distrito.nombre %>
+                                            </option>
+                                        <% }); %>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label for="id_cafe" class="form-label required-field">Café</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-cup-hot"></i></span>
+                                    <select class="form-select" id="id_cafe" name="id_cafe" required>
+                                        <option value="">Seleccione un café</option>
+                                        <% cafes.forEach(function(cafe) { %>
+                                            <option value="<%= cafe.id_cafe %>" <%= vendedor.id_cafe == cafe.id_cafe ? 'selected' : '' %>>
+                                                <%= cafe.nombre %>
                                             </option>
                                         <% }); %>
                                     </select>

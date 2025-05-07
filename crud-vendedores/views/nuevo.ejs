@@ -237,6 +237,21 @@
                   </div>
                 </div>
 
+                <div class="mb-4">
+                  <label for="id_cafe" class="form-label required-field">Café</label>
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-cup-hot"></i></span>
+                    <select class="form-select" id="id_cafe" name="id_cafe" required>
+                      <option value="" selected disabled>Seleccione un café</option>
+                      <% cafes.forEach(function(cafe) { %>
+                        <option value="<%= cafe.id_cafe %>">
+                          <%= cafe.nombre %> - S/. <%= cafe.precio %>
+                        </option>
+                      <% }); %>
+                    </select>
+                  </div>
+                </div>
+
                 <div class="alert alert-info" role="alert">
                   <i class="bi bi-info-circle-fill me-2"></i>
                   Todos los campos marcados con <strong>*</strong> son

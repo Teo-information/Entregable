@@ -251,31 +251,25 @@
                         <table class="table table-hover mb-0">
                             <thead>
                                 <tr>
-                                    <th scope="col" width="80">#ID</th>
-                                    <th scope="col">Nombre</th>
-                                    <th scope="col">Apellido</th>
-                                    <th scope="col">Celular</th>
-                                    <th scope="col">Distrito</th>
-                                    <th scope="col" class="text-end">Acciones</th>
+                                    <th>ID</th>
+                                    <th>Nombre</th>
+                                    <th>Apellido</th>
+                                    <th>Celular</th>
+                                    <th>Distrito</th>
+                                    <th>Café</th>
+                                    <th>Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <% vendedores.forEach(function(vendedor) { %>
                                     <tr>
-                                        <td class="fw-bold"><%= vendedor.id_ven %></td>
+                                        <td><%= vendedor.id_ven %></td>
                                         <td><%= vendedor.nom_ven %></td>
                                         <td><%= vendedor.ape_ven %></td>
-                                        <td>
-                                            <span class="badge bg-secondary">
-                                                <i class="bi bi-phone me-1"></i><%= vendedor.cel_ven %>
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <span class="badge bg-secondary">
-                                                <i class="bi bi-map me-1"></i><%= vendedor.distrito %>
-                                            </span>
-                                        </td>
-                                        <td class="text-end action-buttons">
+                                        <td><%= vendedor.cel_ven %></td>
+                                        <td><%= vendedor.distrito %></td>
+                                        <td><%= vendedor.tipo_cafe %></td>
+                                        <td class="action-buttons">
                                             <a href="/vendedores/editar/<%= vendedor.id_ven %>" class="btn btn-primary btn-sm">
                                                 <i class="bi bi-pencil-square"></i>
                                             </a>
