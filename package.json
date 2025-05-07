@@ -12,11 +12,12 @@
   "license": "ISC",
   "dependencies": {
     "body-parser": "^2.2.0",
+    "dotenv": "^16.5.0",
     "ejs": "^3.1.10",
     "express": "^5.1.0",
     "json2csv": "^6.0.0-alpha.2",
     "mysql2": "^3.14.0",
-    "pdfmake": "^0.2.18"
+    "pdfmake": "^0.2.19"
   },
   "repository": {
     "type": "git",

@@ -1,14 +1,17 @@
--- Script SQL unificado para sistema de gestión de vendedores
--- Este script combina las mejores características de ambos scripts originales
-
--- Eliminar la base de datos si existe (opcional, comentar si no se desea usar)
--- DROP DATABASE IF EXISTS Sistema_Ventas;
-
--- Crear la base de datos (opcional, comentar si ya existe)
--- CREATE DATABASE IF NOT EXISTS Sistema_Ventas;
-
--- Usar la base de datos
-USE Sistema_Ventas;  -- Cambiar por el nombre de la base de datos que se esté utilizando
+   CREATE TABLE Distrito (
+       id_distrito INT PRIMARY KEY AUTO_INCREMENT,
+       nombre VARCHAR(50) NOT NULL
+   );
+      CREATE TABLE Vendedor (
+       id_ven INT PRIMARY KEY AUTO_INCREMENT,
+       nom_ven VARCHAR(25) NOT NULL,
+       ape_ven VARCHAR(25) NOT NULL,
+       cel_ven CHAR(9) NOT NULL,
+       id_distrito INT,
+       FOREIGN KEY (id_distrito) REFERENCES Distrito(id_distrito) ON DELETE SET NULL
+   );
+   -- Primero crear la base de datos si no existe
+USE railway;
 
 -- Eliminar procedimientos almacenados si existen
 DROP PROCEDURE IF EXISTS sp_ingven;
@@ -18,6 +21,7 @@ DROP PROCEDURE IF EXISTS sp_lisven;
 DROP PROCEDURE IF EXISTS sp_busven;
 DROP PROCEDURE IF EXISTS sp_searchven;
 DROP PROCEDURE IF EXISTS sp_lisdistritos;
+DROP PROCEDURE IF EXISTS sp_asignar_distrito_defecto;
 
 -- Eliminar tablas si existen (en orden correcto por las foreign keys)
 DROP TABLE IF EXISTS Vendedor;
@@ -29,33 +33,30 @@ CREATE TABLE IF NOT EXISTS Distrito (
     nombre VARCHAR(50) NOT NULL
 );
 
--- Insertar distritos directamente (si la tabla está vacía)
-INSERT INTO Distrito (nombre)
-SELECT * FROM (
-    SELECT 'San Juan de Lurigancho' UNION
-    SELECT 'San Martín de Porres' UNION
-    SELECT 'Ate' UNION
-    SELECT 'Comas' UNION
-    SELECT 'Villa El Salvador' UNION
-    SELECT 'Villa María del Triunfo' UNION
-    SELECT 'San Juan de Miraflores' UNION
-    SELECT 'Los Olivos' UNION
-    SELECT 'Puente Piedra' UNION
-    SELECT 'Santiago de Surco'
-) AS tmp
-WHERE NOT EXISTS (SELECT 1 FROM Distrito LIMIT 1);
+-- Insertar distritos
+INSERT INTO Distrito (nombre) VALUES
+('San Juan de Lurigancho'),
+('San Martín de Porres'),
+('Ate'),
+('Comas'),
+('Villa El Salvador'),
+('Villa María del Triunfo'),
+('San Juan de Miraflores'),
+('Los Olivos'),
+('Puente Piedra'),
+('Santiago de Surco');
 
 -- Crear la tabla Vendedor
 CREATE TABLE IF NOT EXISTS Vendedor (
     id_ven INT PRIMARY KEY AUTO_INCREMENT,
     nom_ven VARCHAR(25) NOT NULL,
-    ape_ven VARCHAR(25) NOT NULL,  -- Se usa ape_ven como nombre estándar para la columna de apellido
+    ape_ven VARCHAR(25) NOT NULL,
     cel_ven CHAR(9) NOT NULL,
     id_distrito INT,
     FOREIGN KEY (id_distrito) REFERENCES Distrito(id_distrito) ON DELETE SET NULL
 );
 
--- Procedimiento almacenado para insertar (sp_ingven)
+-- Procedimiento para insertar vendedor
 DELIMITER //
 CREATE PROCEDURE sp_ingven(
     IN p_nom_ven VARCHAR(25),
@@ -94,7 +95,7 @@ BEGIN
 END //
 DELIMITER ;
 
--- Procedimiento almacenado para actualizar (sp_modven)
+-- Procedimiento para modificar vendedor
 DELIMITER //
 CREATE PROCEDURE sp_modven(
     IN p_id_ven INT,
@@ -144,7 +145,7 @@ BEGIN
 END //
 DELIMITER ;
 
--- Procedimiento almacenado para eliminar (sp_delven)
+-- Procedimiento para eliminar vendedor
 DELIMITER //
 CREATE PROCEDURE sp_delven(
     IN p_id_ven INT
@@ -160,23 +161,10 @@ BEGIN
     END IF;
     
     DELETE FROM Vendedor WHERE id_ven = p_id_ven;
-    
-    -- Opción para reordenar IDs (comentar si no se desea esta funcionalidad)
-    -- SET @num := 0;
-    -- UPDATE Vendedor SET id_ven = @num := (@num + 1) ORDER BY id_ven;
-    -- ALTER TABLE Vendedor AUTO_INCREMENT = 1;
 END //
 DELIMITER ;
 
--- Procedimiento almacenado para listar distritos
-DELIMITER //
-CREATE PROCEDURE sp_lisdistritos()
-BEGIN
-    SELECT * FROM Distrito ORDER BY nombre;
-END //
-DELIMITER ;
-
--- Procedimiento almacenado para listar (sp_lisven)
+-- Procedimiento para listar vendedores
 DELIMITER //
 CREATE PROCEDURE sp_lisven()
 BEGIN
@@ -189,7 +177,7 @@ BEGIN
 END //
 DELIMITER ;
 
--- Procedimiento almacenado para buscar por ID (sp_busven)
+-- Procedimiento para buscar vendedor por ID
 DELIMITER //
 CREATE PROCEDURE sp_busven(
     IN p_id_ven INT
@@ -209,7 +197,7 @@ BEGIN
 END //
 DELIMITER ;
 
--- Procedimiento almacenado para buscar por texto (sp_searchven)
+-- Procedimiento para buscar vendedor por texto
 DELIMITER //
 CREATE PROCEDURE sp_searchven(
     IN p_search VARCHAR(50)
@@ -231,7 +219,15 @@ BEGIN
 END //
 DELIMITER ;
 
--- Procedimiento para asignar distrito por defecto (opcional - comentar si no se requiere)
+-- Procedimiento para listar distritos
+DELIMITER //
+CREATE PROCEDURE sp_lisdistritos()
+BEGIN
+    SELECT * FROM Distrito ORDER BY nombre;
+END //
+DELIMITER ;
+
+-- Procedimiento para asignar distrito por defecto
 DELIMITER //
 CREATE PROCEDURE sp_asignar_distrito_defecto()
 BEGIN
@@ -245,7 +241,7 @@ BEGIN
 END //
 DELIMITER ;
 
--- Procedimiento almacenado para listar vendedores con paginación
+-- Procedimiento para listar vendedores con paginación
 DELIMITER //
 CREATE PROCEDURE sp_lisven_paginado(
     IN p_limite INT,
@@ -258,35 +254,12 @@ BEGIN
     FROM Vendedor v
     LEFT JOIN Distrito d ON v.id_distrito = d.id_distrito
     ORDER BY v.id_ven
-    LIMIT p_limite OFFSET p_offset;
-    
-    -- Segunda consulta para obtener el total de registros
-    SELECT COUNT(*) as total FROM Vendedor;
+    LIMIT p_limite
+    OFFSET p_offset;
 END //
 DELIMITER ;
-
--- Procedimiento almacenado para buscar por ID con paginación
-DELIMITER //
-CREATE PROCEDURE sp_busven_paginado(
-    IN p_id_ven INT,
-    IN p_limite INT,
-    IN p_offset INT
-)
-BEGIN
-    SELECT 
-        v.*,
-        COALESCE(d.nombre, 'Sin distrito') as distrito
-    FROM Vendedor v
-    LEFT JOIN Distrito d ON v.id_distrito = d.id_distrito
-    WHERE v.id_ven = p_id_ven
-    LIMIT p_limite OFFSET p_offset;
-    
-    -- Segunda consulta para obtener el total de registros filtrados
-    SELECT COUNT(*) as total FROM Vendedor WHERE id_ven = p_id_ven;
-END //
-DELIMITER ;
-
--- Procedimiento almacenado para buscar por texto con paginación
+DROP PROCEDURE IF EXISTS sp_searchven_paginado;
+-- Procedimiento para buscar vendedores con paginación
 DELIMITER //
 CREATE PROCEDURE sp_searchven_paginado(
     IN p_search VARCHAR(50),
@@ -294,11 +267,6 @@ CREATE PROCEDURE sp_searchven_paginado(
     IN p_offset INT
 )
 BEGIN
-    IF p_search IS NULL THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'El término de búsqueda no puede estar vacío';
-    END IF;
-    
     SELECT 
         v.*,
         COALESCE(d.nombre, 'Sin distrito') as distrito
@@ -309,106 +277,7 @@ BEGIN
        OR d.nombre LIKE CONCAT('%', p_search, '%')
        OR v.cel_ven LIKE CONCAT('%', p_search, '%')
     ORDER BY v.id_ven
-    LIMIT p_limite OFFSET p_offset;
-    
-    -- Segunda consulta para obtener el total de registros filtrados
-    SELECT COUNT(*) as total 
-    FROM Vendedor v
-    LEFT JOIN Distrito d ON v.id_distrito = d.id_distrito
-    WHERE v.nom_ven LIKE CONCAT('%', p_search, '%')
-       OR v.ape_ven LIKE CONCAT('%', p_search, '%')
-       OR d.nombre LIKE CONCAT('%', p_search, '%')
-       OR v.cel_ven LIKE CONCAT('%', p_search, '%');
+    LIMIT p_limite
+    OFFSET p_offset;
 END //
-DELIMITER ;
-
--- Procedimiento almacenado simplificado para contar todos los vendedores
-DELIMITER //
-CREATE PROCEDURE sp_contar_vendedores()
-BEGIN
-    SELECT COUNT(*) as total FROM Vendedor;
-END //
-DELIMITER ;
-
--- Procedimiento almacenado para buscar por tipo específico con paginación
-DELIMITER //
-CREATE PROCEDURE sp_buscar_por_tipo_paginado(
-    IN p_search VARCHAR(50),
-    IN p_tipo VARCHAR(20),
-    IN p_limite INT,
-    IN p_offset INT
-)
-BEGIN
-    IF p_search IS NULL THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'El término de búsqueda no puede estar vacío';
-    END IF;
-    
-    CASE p_tipo
-        WHEN 'nombre' THEN
-            SELECT 
-                v.*,
-                COALESCE(d.nombre, 'Sin distrito') as distrito
-            FROM Vendedor v
-            LEFT JOIN Distrito d ON v.id_distrito = d.id_distrito
-            WHERE v.nom_ven LIKE CONCAT('%', p_search, '%')
-            ORDER BY v.id_ven
-            LIMIT p_limite OFFSET p_offset;
-            
-            -- Total de registros filtrados
-            SELECT COUNT(*) as total 
-            FROM Vendedor 
-            WHERE nom_ven LIKE CONCAT('%', p_search, '%');
-            
-        WHEN 'apellido' THEN
-            SELECT 
-                v.*,
-                COALESCE(d.nombre, 'Sin distrito') as distrito
-            FROM Vendedor v
-            LEFT JOIN Distrito d ON v.id_distrito = d.id_distrito
-            WHERE v.ape_ven LIKE CONCAT('%', p_search, '%')
-            ORDER BY v.id_ven
-            LIMIT p_limite OFFSET p_offset;
-            
-            -- Total de registros filtrados
-            SELECT COUNT(*) as total 
-            FROM Vendedor 
-            WHERE ape_ven LIKE CONCAT('%', p_search, '%');
-            
-        WHEN 'distrito' THEN
-            SELECT 
-                v.*,
-                COALESCE(d.nombre, 'Sin distrito') as distrito
-            FROM Vendedor v
-            LEFT JOIN Distrito d ON v.id_distrito = d.id_distrito
-            WHERE d.nombre LIKE CONCAT('%', p_search, '%')
-            ORDER BY v.id_ven
-            LIMIT p_limite OFFSET p_offset;
-            
-            -- Total de registros filtrados
-            SELECT COUNT(*) as total 
-            FROM Vendedor v
-            LEFT JOIN Distrito d ON v.id_distrito = d.id_distrito
-            WHERE d.nombre LIKE CONCAT('%', p_search, '%');
-            
-        WHEN 'celular' THEN
-            SELECT 
-                v.*,
-                COALESCE(d.nombre, 'Sin distrito') as distrito
-            FROM Vendedor v
-            LEFT JOIN Distrito d ON v.id_distrito = d.id_distrito
-            WHERE v.cel_ven LIKE CONCAT('%', p_search, '%')
-            ORDER BY v.id_ven
-            LIMIT p_limite OFFSET p_offset;
-            
-            -- Total de registros filtrados
-            SELECT COUNT(*) as total 
-            FROM Vendedor 
-            WHERE cel_ven LIKE CONCAT('%', p_search, '%');
-            
-        ELSE
-            -- Por defecto buscar en todos los campos
-            CALL sp_searchven_paginado(p_search, p_limite, p_offset);
-    END CASE;
-END //
-DELIMITER ;
+DELIMITER ; 
