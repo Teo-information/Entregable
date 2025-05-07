@@ -171,7 +171,7 @@ class VendedorController {
         });
       }
 
-      // 3. Configurar fuentes - usar fuentes estándar sin rutas específicas
+      // 3. Configurar fuentes
       const fonts = {
         Roboto: {
           normal: "Helvetica",
@@ -181,85 +181,108 @@ class VendedorController {
         },
       };
 
-      // Si tienes problemas con las fuentes, descomenta estas líneas y comenta las anteriores
-      /*
-      const fonts = {
-        Roboto: {
-          normal: path.join(__dirname, '../node_modules/pdfmake/fonts/Roboto/Roboto-Regular.ttf'),
-          bold: path.join(__dirname, '../node_modules/pdfmake/fonts/Roboto/Roboto-Medium.ttf'),
-          italics: path.join(__dirname, '../node_modules/pdfmake/fonts/Roboto/Roboto-Italic.ttf'),
-          bolditalics: path.join(__dirname, '../node_modules/pdfmake/fonts/Roboto/Roboto-MediumItalic.ttf')
-        }
-      };
-      */
-
       // 4. Crear instancia de PdfPrinter
       const printer = new PdfPrinter(fonts);
       console.log("Instancia de PdfPrinter creada");
 
-      // 5. Crear definición del documento
+      // 5. Preparar los datos de la tabla
+      const tableBody = vendedores.map(v => [
+        { text: v.id_ven?.toString() || '', style: 'tableCell' },
+        { text: v.nom_ven || '', style: 'tableCell' },
+        { text: v.ape_ven || '', style: 'tableCell' },
+        { text: v.cel_ven || '', style: 'tableCell' },
+        { text: v.distrito || 'Sin distrito', style: 'tableCell' }
+      ]);
+
+      // 6. Crear definición del documento
       const docDefinition = {
+        pageSize: 'A4',
+        pageMargins: [40, 60, 40, 60],
         content: [
-          { text: "Lista de Vendedores", style: "header" },
+          { 
+            text: "Lista de Vendedores", 
+            style: "header",
+            alignment: 'center',
+            margin: [0, 0, 0, 20]
+          },
           {
             table: {
               headerRows: 1,
-              widths: ["auto", "*", "*", "auto", "*"],
+              widths: [50, 100, 100, 80, 150],
               body: [
-                ["ID", "Nombre", "Apellido", "Celular", "Distrito", "Tipo Café"],
-                ...vendedores.map((v) => [
-                  v.id_ven,
-                  v.nom_ven,
-                  v.ape_ven,
-                  v.cel_ven,
-                  v.distrito,
-                  v.tipo_cafe,
-                ]),
-              ],
+                [
+                  { text: 'ID', style: 'tableHeader' },
+                  { text: 'Nombre', style: 'tableHeader' },
+                  { text: 'Apellido', style: 'tableHeader' },
+                  { text: 'Celular', style: 'tableHeader' },
+                  { text: 'Distrito', style: 'tableHeader' }
+                ],
+                ...tableBody
+              ]
             },
-          },
+            layout: {
+              fillColor: function(rowIndex, node, columnIndex) {
+                return (rowIndex % 2 === 0) ? '#f5f5f5' : null;
+              },
+              hLineWidth: function(i, node) { return 1; },
+              vLineWidth: function(i, node) { return 1; },
+              hLineColor: function(i, node) { return '#aaa'; },
+              vLineColor: function(i, node) { return '#aaa'; },
+              paddingLeft: function(i, node) { return 8; },
+              paddingRight: function(i, node) { return 8; },
+              paddingTop: function(i, node) { return 4; },
+              paddingBottom: function(i, node) { return 4; }
+            }
+          }
         ],
         styles: {
           header: {
             fontSize: 18,
             bold: true,
-            margin: [0, 0, 0, 10],
+            margin: [0, 0, 0, 10]
           },
+          tableHeader: {
+            bold: true,
+            fontSize: 12,
+            color: 'black',
+            fillColor: '#f0f0f0',
+            alignment: 'center'
+          },
+          tableCell: {
+            fontSize: 10,
+            alignment: 'left'
+          }
         },
+        defaultStyle: {
+          fontSize: 10
+        }
       };
+
       console.log("Definición del documento PDF creada");
 
-      // 6. Crear el documento PDF
+      // 7. Crear el documento PDF
       const pdfDoc = printer.createPdfKitDocument(docDefinition);
       console.log("Documento PDF creado con éxito");
 
-      // 7. Establecer cabeceras de respuesta
+      // 8. Establecer cabeceras de respuesta
       res.setHeader("Content-Type", "application/pdf");
       res.setHeader(
         "Content-Disposition",
         "attachment; filename=vendedores.pdf"
       );
 
-      // 8. Enviar el PDF al cliente mediante pipe
+      // 9. Enviar el PDF al cliente mediante pipe
       pdfDoc.pipe(res);
       pdfDoc.end();
 
       console.log("PDF enviado al cliente correctamente");
     } catch (error) {
       console.error("Error en exportarPDF:", error);
-      // Si ya se han enviado encabezados, no podemos enviar una respuesta JSON
       if (!res.headersSent) {
         res.status(500).json({
           success: false,
-          message: `Error al generar PDF: ${error.message}`,
+          message: `Error al generar el PDF: ${error.message}`
         });
-      } else {
-        // Intentar finalizar la respuesta de alguna manera
-        try {
-          res.end();
-        } catch (e) {
-          console.error("No se pudo finalizar la respuesta:", e);
-        }
       }
     }
   }
